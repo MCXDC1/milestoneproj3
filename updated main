@@ -1,0 +1,30 @@
+if __name__ == "__main__":
+    """Paris"""
+    """makes the university object"""
+    u = University() 
+    """loads CSV file data - course and student data"""
+    u.load_courses_from_csv()
+    u.load_prerequisites_from_csv()
+    u.load_students_from_csv()
+
+
+    print("Total students:", len(u.students))
+    print("Total courses:", len(u.courses))
+    """university info summary"""
+
+    student = u.get_student("STU00001")
+    """example student!"""
+    print("Student name:", student.name)
+    print("GPA:", student.calculate_gpa())
+    print("Student courses:", student.get_course_info())
+
+    print("CSE2050 enrollment:", u.get_course_enrollment("CSE2050"))
+    """course enrollment"""
+    
+    stats = u.get_course_stats("CSE2050")
+    print("CSE2050 statistics:", stats)
+    """shows course stats"""
+
+    gpa_stats = u.get_university_gpa_stats()
+    print("University Student GPA statistics:", gpa_stats)
+    """shows University GPA stats"""
