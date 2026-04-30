@@ -3,111 +3,9 @@ import unittest
 from university_system2 import Student, Course, University
 from linked import LinkedQueue
 import datetime
+from hashmap import HashMapping
 
 #All testing: Mia
-
-class test_LinkedQueue(unittest.TestCase):
-
-    def setUp(self):
-        self.testq = LinkedQueue()
-        self.test_date = datetime.date(2026, 12, 9)
-        
-        course1_code = "CSE2050"
-        course1_credits = 2
-        course1_capacity = 1
-        self.course1 = Course(course1_code, course1_credits, course1_capacity)
-
-        self.test_student = Student("STU00001", "Student_1")
-        self.test_student2 = Student("STU00002", "Student_2")
-
-
-    def test__init__(self):
-
-        #Ensure Course Class is working with new capacity
-        self.assertEqual(self.course1.course_code, "CSE2050")
-        self.assertEqual(self.course1.credits, 2)
-        self.assertEqual(self.course1.capacity, 1)
-
-    def test_empty_queue(self):
-
-        #Test length of queue when empty
-        self.assertEqual(len(self.testq), 0)
-
-        
-        self.assertTrue(self.testq.is_empty())
-
-        #Ensure empty queue raises a ValueError
-        with self.assertRaises(ValueError):
-            self.testq.dequeue()
-    
-    def test_queue_order(self):
-
-        #Queues student1 then student2
-        self.testq.enqueue("Student1")
-        self.testq.enqueue("Student2")
-
-        #Dequeues in order of student1 then student2
-        self.assertEqual(self.testq.dequeue(), "Student1")
-        self.assertEqual(self.testq.dequeue(), "Student2")
-
-    def test_size(self):
-
-        #enqueue - check size, then dequeue twice and check size
-
-        self.testq.enqueue("Student1")
-        self.testq.enqueue("Student2")
-        self.assertEqual(len(self.testq), 2)
-
-        self.testq.dequeue()
-        self.assertEqual(len(self.testq), 1)
-
-        self.testq.dequeue()
-        self.assertEqual(len(self.testq), 0)
-
-    def test_capacity(self):
-
-        self.course1.request_enroll(self.test_student, self.test_date)
-        self.course1.request_enroll(self.test_student2, self.test_date)
-
-        #make sure students are not enrolled past capacity
-        enrolled_id = list()
-        for enrollment in self.course1.enrolled:
-            enrolled_id.append(enrollment.student.student_id)
-        self.assertIn("STU00001", enrolled_id)
-        self.assertNotIn("STU00002", enrolled_id)
-
-    def test_waitlist(self):
-        
-        #make sure waitlist is empty when capacity is not met yet
-        self.course1.request_enroll(self.test_student, self.test_date)
-        self.assertEqual(len(self.course1.waitlist), 0)
-
-        #make sure student2 gets pushed to waitlist
-        self.course1.request_enroll(self.test_student2, self.test_date)
-        self.assertEqual(self.course1.get_student_count(), 1)
-        self.assertEqual(len(self.course1.waitlist), 1)
-
-    def test_add_drop_from_waitlist(self):
-
-        self.course1.request_enroll(self.test_student, self.test_date)
-
-        #student gets added to waitlist
-        self.course1.request_enroll(self.test_student2, self.test_date)
-
-        self.course1.sort_enrolled("id", "bubble")
-
-        #drop student in course
-        self.course1.drop("STU00001")
-
-        #ensure student2 is now in course and student1 is not
-        enrolled_id = list()
-        for enrollment in self.course1.enrolled:
-            enrolled_id.append(enrollment.student.student_id)
-        self.assertIn("STU00002", enrolled_id)
-        self.assertNotIn("STU00001", enrolled_id)
-
-        #ensure waitlist is clear
-        self.assertEqual(len(self.course1.waitlist), 0)
 
 class test_Sorting(unittest.TestCase):
      
@@ -130,20 +28,10 @@ class test_Sorting(unittest.TestCase):
         self.course1.request_enroll(self.test_student2, self.test_date2)
         
 
-    # testing sorting by id: bubble/insertion
+    # testing sorting by id: merge/quick
 
-    def test_id_bubble(self):
-        self.course1.sort_enrolled("id", "bubble")
-
-        id_list = list()
-        for enrolled in self.course1.enrolled:
-            id_list.append(enrolled.student.student_id)
-            
-        self.assertEqual(id_list, ["STU00001", "STU00002", "STU00003"])
-        self.assertEqual(self.course1.enrollment_sorted_by, "id")
-
-    def test_id_insertion(self):
-        self.course1.sort_enrolled("id", "insertion")
+    def test_id_merge(self):
+        self.course1.sort_enrolled("id", "merge")
 
         id_list = list()
         for enrolled in self.course1.enrolled:
@@ -152,10 +40,20 @@ class test_Sorting(unittest.TestCase):
         self.assertEqual(id_list, ["STU00001", "STU00002", "STU00003"])
         self.assertEqual(self.course1.enrollment_sorted_by, "id")
 
-    # testing sorting by name: bubble/insertion
+    def test_id_quick(self):
+        self.course1.sort_enrolled("id", "quick")
 
-    def test_name_bubble(self):
-        self.course1.sort_enrolled("name", "bubble")
+        id_list = list()
+        for enrolled in self.course1.enrolled:
+            id_list.append(enrolled.student.student_id)
+            
+        self.assertEqual(id_list, ["STU00001", "STU00002", "STU00003"])
+        self.assertEqual(self.course1.enrollment_sorted_by, "id")
+
+    # testing sorting by name: merge/quick
+
+    def test_name_merge(self):
+        self.course1.sort_enrolled("name", "merge")
 
         id_list = list()
         for enrolled in self.course1.enrolled:
@@ -164,8 +62,8 @@ class test_Sorting(unittest.TestCase):
         self.assertEqual(id_list, ["Student_1", "Student_2", "Student_3"])
         self.assertEqual(self.course1.enrollment_sorted_by, "name")
 
-    def test_name_insertion(self):
-        self.course1.sort_enrolled("name", "insertion")
+    def test_name_quick(self):
+        self.course1.sort_enrolled("name", "quick")
 
         id_list = list()
         for enrolled in self.course1.enrolled:
@@ -174,10 +72,10 @@ class test_Sorting(unittest.TestCase):
         self.assertEqual(id_list, ["Student_1", "Student_2", "Student_3"])
         self.assertEqual(self.course1.enrollment_sorted_by, "name")
 
-    # testing sorting by date: bubble/insertion
+    # testing sorting by date: merge/quick
 
-    def test_date_bubble(self):
-        self.course1.sort_enrolled("date", "bubble")
+    def test_date_merge(self):
+        self.course1.sort_enrolled("date", "merge")
 
         id_list = list()
         for enrolled in self.course1.enrolled:
@@ -186,8 +84,8 @@ class test_Sorting(unittest.TestCase):
         self.assertEqual(id_list, [self.test_date1, self.test_date2, self.test_date3])
         self.assertEqual(self.course1.enrollment_sorted_by, "date")
 
-    def test_date_insertion(self):
-        self.course1.sort_enrolled("date", "insertion")
+    def test_date_quick(self):
+        self.course1.sort_enrolled("date", "quick")
 
         id_list = list()
         for enrolled in self.course1.enrolled:
@@ -215,7 +113,7 @@ class test_Binary_sorting(unittest.TestCase):
         self.course1.request_enroll(self.test_student1, self.test_date1)
         self.course1.request_enroll(self.test_student2, self.test_date2)
 
-        self.course1.sort_enrolled("id", "bubble")
+        self.course1.sort_enrolled("id", "merge")
 
     #search for students in the course, ensure correct index
     def test_binary_search(self):
@@ -230,37 +128,74 @@ class test_Binary_sorting(unittest.TestCase):
     #ensure sorted not by id raises error
     def test_sorted_raises_error(self):
 
-        self.course1.sort_enrolled("name", "bubble")
+        self.course1.sort_enrolled("name", "merge")
         with self.assertRaises(ValueError):
             self.course1.drop("STU00001")
         
-        self.course1.sort_enrolled("date", "bubble")
+        self.course1.sort_enrolled("date", "merge")
         with self.assertRaises(ValueError):
             self.course1.drop("STU00001")
 
+class test_HashMap(unittest.TestCase):
 
+    # test put and get functionality
+    def test_initialize(self):
+        HMap = HashMapping()
+        HMap["CSE2050"] = True
+        self.assertEqual(HMap["CSE2050"], True)
 
+    #test collision
+    def test_collision(self):
+        hMap = HashMapping(size=2)
+        hMap["CSE1"] = 1
+        hMap["CSE2"] = 2
+        hMap["CSE3"] = 3
 
+        self.assertEqual(hMap["CSE1"], 1)
+        self.assertEqual(hMap["CSE2"], 2)
+        self.assertEqual(hMap["CSE3"], 3)
 
-
-
-
-
-
+    #test that rehash occurs when buckets filled
     
+    def test_rehash(self):
+        hMap = HashMapping(size=2)
+
+        hMap.put("CSE1", 1)
+        hMap.put("CSE2", 2) #rehash
+
+        self.assertEqual(hMap._size, 4) #doubled
+        self.assertEqual(len(hMap), 2)
+        self.assertEqual(hMap.get("CSE1"), 1)
+        self.assertEqual(hMap.get("CSE2"), 2)
+
+        hMap.put("CSE3", 3)
+        hMap.put("CSE4", 4)
+
+        self.assertEqual(hMap._size, 8) #doubled 2
+        self.assertEqual(hMap.get("CSE3"), 3)
+        self.assertEqual(hMap.get("CSE4"), 4)
+
+class test_prereqs(unittest.TestCase):
+
+    def setUp(self):
+        self.pre = Course("CSE1", 3, 30)
+        self.post = Course("CSE2", 3, 30)
+        self.post.prerequisites["CSE1"] = True
+        self.test_student1 = Student("STU00001", "Student_1")
+
+    def test_prereq_taken(self):
+        #prereq has been met
+        self.test_student1.enroll(self.pre, "A")
+        self.test_student1.enroll(self.post, "A")
+
+        #student added to course
+        self.assertEqual(len(self.post.enrolled),1)
+
+    def test_prereq_not_taken(self):
+        #prereq has not been met raises error
+        with self.assertRaises(Exception):
+            self.test_student1.enroll(self.post, "A")
 
 
 
 
-
-
-
-
-
-    
-
-
-
-
-
-    

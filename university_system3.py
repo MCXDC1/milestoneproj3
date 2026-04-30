@@ -1,13 +1,16 @@
 import csv
-import datetime 
+from datetime import date
 from enrollment_structure import EnrollmentRecord
+from course_algorithms import mergesort, quicksort
+from linked import LinkedQueue
+from hashmap import HashMapping
 
 class Student:
     """Represents an individual student with their courses and attached grades"""
 
-    #Mia
     def __init__(self, student_id: str, name: str):
         """Initializes a student object with an id and the students' name"""
+        """Mia"""
         validate_id = student_id.startswith("STU")
 
         if validate_id == False:
@@ -29,43 +32,46 @@ class Student:
             'D': 1.0, 'F': 0.0
         }
     
-    #Mia
+    
     def __eq__(self, other):
-        """If Student IDS are the same, then it is the same student"""
+        """Mia"""
         if isinstance(other, Student):
             return self.student_id == other.student_id
         return False
 
-    #Mia
+    
     def __hash__(self):
-        """Student IDS can be stored in sets, used for intersect students"""
+        """Mia"""
         return hash(self.student_id)
-
-    #Mia
+    
     def enroll(self, course, grade: str):
-        """Enrolls a Student using Enrollment Record into a course"""
+        """Enrolls a student into a course"""
+        """Mia"""
         if grade not in self.grade_points:
             raise ValueError(f"{grade} is not a grade in the system")
         else:
             self.courses[course] = grade
-            course.request_enroll(self, datetime.date.today())
+            course.request_enroll(self, date.today())  #Paris
 
-    #Mia
+    
     def update_grade(self, course, grade: str):
         """Updates a students' grade in a course"""
+        """Mia"""
         if grade not in self.grade_points:
             raise ValueError(f"{grade} is not a grade in the system")
         else:
             self.courses[course] = grade
 
-    #Paris
+    
     def get_courses(self):
         """Returns all courses a student is enrolled in"""
+        """Paris"""
         return list(self.courses.keys())
 
-    #Paris
+    
     def calculate_gpa(self):   
         """Calculates a students overall GPA"""
+        """Paris"""
 
         total_points = 0
         total_credits = 0
@@ -84,39 +90,45 @@ class Student:
         return total_points / total_credits
         
 
-    #Paris
+    
     def get_course_info(self,):
        """Returns a summary of all the courses a student is taking"""
+       """Paris"""
        all_courses = list()
        for course, grade in self.courses.items():
             all_courses.append(f'Course: {course.course_code}, Grade: {grade}, Credits: {course.credits} \n')
-            
        return all_courses
 
-from linked import LinkedQueue
-from course_algorithms import bubble, insertion
+
 
 class Course:
     """Represents a single course and the students in it"""
     
-    #Mia/Paris
     def __init__(self, course_code: str, credits: int, capacity: int):
-        """Initializes a Course object with a code, how many credits for the course, and capacity for course"""
+        """Paris/Mia"""
         self.course_code = course_code
         self.credits = credits
-        self.waitlist = LinkedQueue()
-        self.capacity = capacity 
-        self.enrolled = list()
-        self.enrollment_sorted_by = None
+        self.capacity = capacity
+        
+        self.enrolled = []      
+        self.waitlist = LinkedQueue()   #fifo waitlist
+        self.sorted_by = None 
+        self.prerequisites = HashMapping()  
 
-    #Mia
+    
     def get_student_count(self):
         """Counts how many students are in a course"""
+        """Paris"""
         return len(self.enrolled)
     
-    #Paris
     def request_enroll(self, student, enroll_date):
-        """checks if a student is enrolled first and if there is space. if theres space then it puts then in the queue"""
+        "checks prerequisites first. if a student is enrolled first and if there is space. if theres space then it puts then in the queue"
+        """Paris"""
+        student_courses = {c.course_code for c in student.get_courses()}
+
+        for prereq in self.prerequisites:
+            if prereq not in student_courses:
+                raise Exception(f"Missing prerequisite: {prereq}")
         for record in self.enrolled:
             if record.student.student_id == student.student_id:
                 return  
@@ -126,9 +138,12 @@ class Course:
         else:
             self.waitlist.enqueue(student)
 
-    #Paris
+        #ask: If a student is already enrolled, should we ignore the request or raise an exception?
+
+
     def binary_search(self, target_id, low, high):
         """searches for students by ID (recursive search)"""
+        """Paris"""
         if low > high:
             return -1
 
@@ -143,10 +158,10 @@ class Course:
             return self.binary_search(target_id, mid + 1, high)
 
 
-    #Paris
     def drop(self, student_id, enroll_date_for_replacement=None):
         """uses binary search to find the student, then removes them from the course, and then continues on with the next student"""
-        if self.enrollment_sorted_by != "id":
+        """Paris"""
+        if self.sorted_by != "id":
             raise ValueError("Roster must be sorted by student ID before dropping.")
 
         index = self.binary_search(student_id, 0, len(self.enrolled) - 1)
@@ -164,75 +179,65 @@ class Course:
             if enroll_date_for_replacement:
                 new_date = enroll_date_for_replacement
             else:
-                new_date = datetime.date.today()
+                new_date = date.today()
 
             new_record = EnrollmentRecord(next_student, new_date)
             self.enrolled.append(new_record)
 
         """if someone was removed replace them with the nect person in the waitlist."""
-        self.enrollment_sorted_by = None
-    
-    #Mia
-    def sort_enrolled(self, by: str, algorithm: str):
-        """Sort the enrolled roster by key: name, id or date enrolled \n
-        Stores what key the roster is sorted by \n
-        Rejects sorting by other methods"""
+        self.sorted_by = None
 
-        by = by.lower()
-        algorithm = algorithm.lower()
 
-        allowed_methods = ('name', 'id', 'date')
-
-        if by not in allowed_methods:
-            raise ValueError("The system can only be sorted by name, id, or date!")
-
+    def sort_enrolled(self, by, algorithm="merge"):
+        "Mergesort & Quicksort"
+        "Paris"
         EnrollmentRecord.key = by
 
-        if algorithm == 'bubble':
-            bubble(self.enrolled)
-        elif algorithm == 'insertion':
-            insertion(self.enrolled)
+        if algorithm == "merge":
+            mergesort(self.enrolled)
+        elif algorithm == "quick":
+            quicksort(self.enrolled)
         else:
-            raise ValueError("The system can only be sorted using bubble or insertion sort!")
+            raise ValueError("Invalid algorithm")
 
-        self.enrollment_sorted_by = by
-
-
+        self.sorted_by = by
+ 
 class University: 
     """Stores all students and all courses"""
 
-    #Paris
     def __init__ (self):
         """Initializes empty course and student rosters"""
+        """Paris"""
         self.students = {}
         self.courses = {}
     
     
-    #Paris / Mia
+    
     def load_courses_from_csv(self):
         """Load in course information from csv file"""
-        with open('course_catalog_CSE10_with_capacity.csv', 'r') as f:
+        """Paris"""
+        with open('CSE_project/course_catalog.csv', 'r') as f:
             """Opens the csv file and reads the lines as dictionaries"""
             data = csv.DictReader(f)
             for line in data:
                 """gets the data from csv and adds the course to university"""
-                course_code = line['course_id']
+                course_code = line['course_code']
                 credits = int(line['credits'])
-                capacity = int(line['capacity'])
-                self.add_course(course_code, credits, capacity)
+                self.add_course(course_code, credits)
 
     
-    #Paris
+    
     def load_students_from_csv(self):
         """Load in student information from csv file"""
-        with open('university_data.csv', 'r') as f:
+        """Paris"""
+        with open('CSE_project/university_data.csv', 'r') as f:
             data2 = csv.DictReader(f)
             for line in data2:
                 """gets data from csv and creates the student object,
                 then splits the list into entrys"""
-                student_id =  line['student_id']
-                name = line['name']
-                All_courses = line['courses']
+                student_id =  line['Student ID']
+                name = line['Name']
+                All_courses = line['Courses']
                 student = self.add_student(student_id, name)
                 courses = All_courses.split(';')
 
@@ -243,48 +248,27 @@ class University:
                         course = self.get_course(course_code)
 
                         if course:
-                            student.enroll(course, grade)
-
-    #Mia
-    def load_enrollments_from_csv(self):
-        """Load in student enrollments from CSV file"""
-        with open('enrollments_CSE10.csv', 'r') as f:
-            data3 = csv.DictReader(f)
-            for line in data3:
-        
-                student_id =  line['student_id']
-                course_id = line['course_id']
-                grade = line['grade']
-
-                student = self.get_student(student_id)
-                course = self.get_course(course_id)
-
-                if student and course:
-                    if grade:
-                        student.enroll(course, grade)
-                    else:
-                        course.request_enroll(student, datetime.date.today())
-
-
-        
+                            student.courses[course] = grade
 
 
     
-    #Paris
-    def add_course(self, course_code, credits, capacity):
+    
+    def add_course(self, course_code, credits):
         """Adds a course into course roster"""
+        """Paris"""
         if course_code not in self.courses:
             """adds the course if its not already there. Then stores the course in a dict"""
-            course = Course(course_code, credits, capacity)
+            course = Course(course_code, credits, capacity=30)  
             self.courses[course_code] = course
             return self.courses[course_code]
         else: 
             raise ValueError(f"{course_code} is already in the system!")
 
     
-    #Paris / Mia
+    
     def add_student(self, student_id: str, name: str):
         """Adds a student into student roster"""
+        """Paris"""
         if student_id not in self.students:
             """adds student ID if there isnt one already then stores student using the ID as a key"""
             student = Student(student_id, name)
@@ -293,26 +277,28 @@ class University:
         else:
             raise ValueError(f"{student_id} is already in the system!")
     
-    #Paris
+    
     def get_student(self, student_id: str):
         """Returns a student in system"""
+        """Paris"""
         if student_id not in self.students:
             """if a student doesnt exist it returns none else it returns the student object"""
             return None
         return self.students[student_id]
     
-    #Paris
+    
     def get_course(self, course_code: str):
         """Returns a course in system"""
+        """Paris"""
         if course_code not in self.courses:
             """if the course doesnt exist it returns none"""
             return None
         return self.courses[course_code]
 
     
-    #Paris 
     def get_course_enrollment(self, course_code: str):
         """Returns the number of students enrolled in a given course"""
+        """Paris"""
         course = self.courses.get(course_code)
         """grabs course object from the dict, then raises an error if 
         the course isnt valid"""
@@ -321,17 +307,19 @@ class University:
         """counts students"""
         return course.get_student_count()
 
-    #Paris
+    
     def get_students_in_course(self, course_code: str):
         """Returns a list of students enrolled in a given course"""
+        """Paris"""
         course = self.get_course(course_code)
         if course:
-            return course.enrolled
+            return [record.student for record in course.enrolled]
         return None
 
-    #Paris
+    
     def get_course_stats(self, course_code: str):
         """Returns mean, median, and mode for a course"""
+        """Paris"""
 
         course = self.get_course(course_code) 
         """grabs the course object"""
@@ -349,9 +337,10 @@ class University:
 
         scores = []
 
-        for enrollment in course.enrolled:
+        for record in course.enrolled:
+            student = record.student 
             """makes student grades into numeric values for grades"""
-            grade = enrollment.student.courses.get(course)
+            grade = student.courses.get(course)
             if grade in grade_points:
                 scores.append(grade_points[grade])
 
@@ -382,38 +371,23 @@ class University:
             "mode": mode
         }
     
-    #Mia
+    
     def intersect_students(self, course_code1: str, course_code2: str):
         """Print common students in two different courses"""
+        """Mia"""
         course1_students= self.get_students_in_course(course_code1)
         course2_students = self.get_students_in_course(course_code2)
-
-        if course1_students is None:
-            return []
-        
-        if course2_students is None:
-            return []
-        
-        course1 = set()
-        course2 = set()
-
-        for enrolled in course1_students:
-            course1.add(enrolled.student)
-        
-        for enrolled in course2_students:
-            course2.add(enrolled.student)
-
-        common_students = course1 & course2
+        common_students = set(course1_students) & set(course2_students)
         return list(common_students)
 
-
-    #Paris
+    
     def get_university_gpa_stats(self):
         """Gets mean and median GPA for all students in a university"""
+        """Paris"""
         students_GPAs = []
 
         for student in self.students.values():
-            """Calcuates the GPA for all every student"""
+            """calcuates the GPA for all every student"""
             students_GPAs.append(student.calculate_gpa())
 
         if not students_GPAs:
@@ -423,7 +397,7 @@ class University:
         """gets the mean GPA"""
 
         students_GPAs.sort()
-        """Calculates the median GPA"""
+        """calculates the median GPA"""
         n = len(students_GPAs)
 
         if n % 2 == 1:
@@ -434,15 +408,31 @@ class University:
         return {
             "mean": round(mean, 2),
             "median": round(median, 2)
-        
         }
     
-#Paris
+    def load_prerequisites_from_csv(self):
+        "reads cse_prerequisites.csv and stores them"
+        "Pars"
+        with open('CSE_project/cse_prerequisites.csv', 'r') as f:
+            data = csv.DictReader(f)
+            for line in data:
+                course_code = line['course_id']
+                prereq = line['prerequisite']
+
+                course = self.get_course(course_code)
+
+                if course and prereq:
+                    course.prerequisites[prereq] = True
+        
+
+    
 if __name__ == "__main__":
+    """Paris"""
     """makes the university object"""
     u = University() 
     """loads CSV file data - course and student data"""
     u.load_courses_from_csv()
+    u.load_prerequisites_from_csv()
     u.load_students_from_csv()
 
 
@@ -466,3 +456,5 @@ if __name__ == "__main__":
     gpa_stats = u.get_university_gpa_stats()
     print("University Student GPA statistics:", gpa_stats)
     """shows University GPA stats"""
+
+    

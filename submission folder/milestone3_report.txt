@@ -1,0 +1,20 @@
+Complexity Reflection:
+
+1. HashMap Time Complexity
+    - The put and get methods are usually O(1) because the hash function sends the key to the right bucket quickly.
+    - Worst case, if multiple keys go into the same bucket, it becomes O(n) because we have to check a list.
+    - On the off chance the table is ever to full it resizes and rehashes everything, which takes O(n) time.
+
+2. Merge Sort Time Complexity
+    - Merge sort always runs in O(n log n). Note: Same even on best, average, and worst cases.
+    - It splits the list into subdivisions and then combines them again, this tine sorted.
+
+3. Quick Sort Time Complexity
+    - Quick sort is usually O(n log n).
+    - Worst case, it's O(n^2) if the list is already sorted or oddly split.
+
+4. Merge Sort vs Quick Sort
+    - Merge sort is more consistent than Quick sort because it always runs in O(n log n), no matter the best or worse case.
+    - Quick sort is usually faster because it sorts in place, but it can be slower when the list is split oddly.
+    - Quicksort only uses memory when making recursive calls.
+    - Merge sort creates extra lists/arrays so it uses more memory, meaning it takes up more space than Quick sort.
