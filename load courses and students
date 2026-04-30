@@ -1,0 +1,36 @@
+def load_courses_from_csv(self):
+        """Load in course information from csv file"""
+        """Paris"""
+        with open('CSE_project/course_catalog.csv', 'r') as f:
+            """Opens the csv file and reads the lines as dictionaries"""
+            data = csv.DictReader(f)
+            for line in data:
+                """gets the data from csv and adds the course to university"""
+                course_code = line['course_code']
+                credits = int(line['credits'])
+                self.add_course(course_code, credits)
+
+    
+    
+    def load_students_from_csv(self):
+        """Load in student information from csv file"""
+        """Paris"""
+        with open('CSE_project/university_data.csv', 'r') as f:
+            data2 = csv.DictReader(f)
+            for line in data2:
+                """gets data from csv and creates the student object,
+                then splits the list into entrys"""
+                student_id =  line['Student ID']
+                name = line['Name']
+                All_courses = line['Courses']
+                student = self.add_student(student_id, name)
+                courses = All_courses.split(';')
+
+                for entry in courses:
+                    """splits course_code and the grades, grabs the course object, then enrolls the student"""
+                    if entry:
+                        course_code, grade = entry.split(':')
+                        course = self.get_course(course_code)
+
+                        if course:
+                            student.courses[course] = grade

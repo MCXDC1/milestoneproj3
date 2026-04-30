@@ -1,0 +1,14 @@
+def sort_enrolled(self, by, algorithm="merge"):
+        "Mergesort & Quicksort"
+        "Paris"
+        EnrollmentRecord.key = by
+
+        if algorithm == "merge":
+            mergesort(self.enrolled)
+        elif algorithm == "quick":
+            quicksort(self.enrolled)
+        else:
+            raise ValueError("Invalid algorithm")
+
+        self.sorted_by = by
+ 

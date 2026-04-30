@@ -1,0 +1,10 @@
+def __init__(self, course_code: str, credits: int, capacity: int):
+        """Paris/Mia"""
+        self.course_code = course_code
+        self.credits = credits
+        self.capacity = capacity
+        
+        self.enrolled = []      
+        self.waitlist = LinkedQueue()   #fifo waitlist
+        self.sorted_by = None 
+        self.prerequisites = HashMapping()  

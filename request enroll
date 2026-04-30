@@ -1,0 +1,16 @@
+ def request_enroll(self, student, enroll_date):
+        "checks prerequisites first. if a student is enrolled first and if there is space. if theres space then it puts then in the queue"
+        """Paris"""
+        student_courses = {c.course_code for c in student.get_courses()}
+
+        for prereq in self.prerequisites:
+            if prereq not in student_courses:
+                raise Exception(f"Missing prerequisite: {prereq}")
+        for record in self.enrolled:
+            if record.student.student_id == student.student_id:
+                return  
+        if len(self.enrolled) < self.capacity:
+            record = EnrollmentRecord(student, enroll_date)
+            self.enrolled.append(record)
+        else:
+            self.waitlist.enqueue(student)

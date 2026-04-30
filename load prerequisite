@@ -1,0 +1,13 @@
+def load_prerequisites_from_csv(self):
+        "reads cse_prerequisites.csv and stores them"
+        "Pars"
+        with open('CSE_project/cse_prerequisites.csv', 'r') as f:
+            data = csv.DictReader(f)
+            for line in data:
+                course_code = line['course_id']
+                prereq = line['prerequisite']
+
+                course = self.get_course(course_code)
+
+                if course and prereq:
+                    course.prerequisites[prereq] = True
