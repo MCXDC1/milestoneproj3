@@ -1,0 +1,138 @@
+f __name__ == "__main__":
+    """Paris"""
+    """makes the university object"""
+    u = University() 
+    """loads CSV file data - course, student, and prereq data"""
+    u.load_courses_from_csv()
+    u.load_prerequisites_from_csv()
+    u.load_students_from_csv()
+
+    "gets course and student"
+    course = u.get_course("CSE2050")
+    prereq_course = u.get_course("CSE1010")
+    student = u.get_student("STU00001")
+    student2 = u.get_student("STU00002")
+
+    "Give prereqs"
+    student.enroll(prereq_course, "B")
+    student2.enroll(prereq_course, "C")
+    
+    "enrolls"
+    student.enroll(course, "A")
+    student2.enroll(course, "B")
+    "sorts"
+    course.sort_enrolled("id", "quick")
+
+    "prints everything"
+    print("Total students:", len(u.students))
+    print("Total courses:", len(u.courses))
+    print(course.enrolled)
+    
+    print("Student name:", student.name)
+    print("GPA:", student.calculate_gpa())
+    print("Student courses:", student.get_course_info())
+
+    print("CSE2050 enrollment:", u.get_course_enrollment("CSE2050"))
+    """course enrollment"""
+    
+    stats = u.get_course_stats("CSE2050")
+    print("CSE2050 statistics:", stats)
+    """shows course stats"""
+
+    gpa_stats = u.get_university_gpa_stats()
+    print("University Student GPA statistics:", gpa_stats)
+    """shows University GPA stats"""
+
+    
+
+
+    def load_prerequisites_from_csv(self):
+        "reads cse_prerequisites.csv and stores them"
+        "Pars"
+        with open('CSE_project/cse_prerequisites.csv', 'r') as f:
+            data = csv.DictReader(f)
+            for line in data:
+                course_code = line['course_id']
+                prereq = line['prerequisite']
+
+                course = self.get_course(course_code)
+
+                if course and prereq and prereq.strip() != "":
+                    course.prerequisites[prereq.strip()] = True
+
+ def request_enroll(self, student, enroll_date):
+        "checks prerequisites first. if a student is enrolled first and if there is space. if theres space then it puts then in the queue"
+        """Paris"""
+        student_courses = {c.course_code for c in student.get_courses()}
+
+        for prereq in self.prerequisites.items():
+            key = prereq[0]
+            if key not in student_courses:
+                raise Exception(f"Missing prerequisite: {key}")
+            
+
+        for record in self.enrolled:
+            if record.student.student_id == student.student_id:
+                return  
+        if len(self.enrolled) < self.capacity:
+            record = EnrollmentRecord(student, enroll_date)
+            self.enrolled.append(record)
+        else:
+            self.waitlist.enqueue(student)
+
+ def sort_enrolled(self, by, algorithm="merge"):
+        "Mergesort + quicksort"
+        "Paris"
+        EnrollmentRecord.key = by
+
+        if algorithm == "merge":
+            mergesort(self.enrolled)  
+        elif algorithm == "quick":
+            self.enrolled = quicksort(self.enrolled)   
+        else:
+            raise ValueError("Invalid algorithm")
+
+        self.sorted_by = by
+
+def quicksort(l):
+    if len(l) <= 1:
+        return l
+
+    pivot = l[0]
+    left = []
+    right = []
+
+    for x in l[1:]:
+        if x < pivot:
+            left.append(x)
+        else:
+            right.append(x)
+
+    return quicksort(left) + [pivot] + quicksort(right)
+
+def mergesort(l):
+    if len(l) < 2:
+        return l 
+    
+    mid = len(l)//2
+    a = l[:mid]
+    b = l[mid:]
+
+    mergesort(a)
+    mergesort(b)
+    merge(a, b, l)
+    return l 
+
+def merge(a, b, l):
+    i = 0
+    j = 0
+
+    while i < len(a) and j < len(b):   # FIXED
+        if a[i] < b[j]:
+            l[i+j] = a[i]
+            i += 1
+        else:
+            l[i+j] = b[j]
+            j += 1
+
+    l[i+j:] = a[i:] + b[j:]
